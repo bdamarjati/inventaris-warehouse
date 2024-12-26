@@ -29,3 +29,6 @@ jobs:
 
       - name: Run migration
         run: migrate -database "sqlite3://inventory.db" -path "db/migrations" -verbose up
+
+      - name: Run test module
+        run: go test -v -cover ./...
