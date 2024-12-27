@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const secretKey string = "12345678901234567890123456789012"
+
 type Server struct {
 	router     *gin.Engine
 	store      db.Store
@@ -15,8 +17,14 @@ type Server struct {
 }
 
 func NewServer(store db.Store) *Server {
+	tokenMaker, err := token.NewJWTMaker(secretKey)
+	if err != nil {
+		return nil
+	}
+
 	server := &Server{
-		store: store,
+		store:      store,
+		tokenMaker: tokenMaker,
 	}
 
 	server.setupRouter()
