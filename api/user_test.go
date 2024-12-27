@@ -6,7 +6,6 @@ import (
 	"inventory/main/db"
 	"inventory/main/util"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -76,8 +75,6 @@ func TestLoginUser(t *testing.T) {
 
 	data, err := json.Marshal(arg)
 	require.NoError(t, err)
-
-	log.Print(arg)
 
 	url := "/login"
 	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))

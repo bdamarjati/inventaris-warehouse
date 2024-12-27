@@ -41,6 +41,11 @@ func (server *Server) setupRouter() {
 	router.POST("/user", server.createUser)
 	router.POST("/login", server.loginUser)
 
+	authRoute := router.Group("/").Use(authMiddleware(server.tokenMaker))
+	authRoute.GET("/auth", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{"message": "authorized"})
+	})
+
 	router.POST("/category", server.createCategory)
 	router.GET("/category/:id", server.getCategory)
 	router.GET("/categories/:size/:page", server.listCategories)
