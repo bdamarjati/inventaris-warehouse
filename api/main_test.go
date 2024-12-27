@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,7 +14,12 @@ import (
 var testStore *db.Store
 
 func TestMain(m *testing.M) {
-	conn, err := util.Connect("../inventory.db")
+	config, err := util.LoadConfig("..")
+	if err != nil {
+		log.Fatal("failed to load config file")
+	}
+	path := "../" + config.DBName
+	conn, err := util.Connect(path)
 	if err != nil {
 		log.Fatal("failed to connect to database: ", err)
 	}
@@ -26,6 +32,10 @@ func TestMain(m *testing.M) {
 }
 
 func newTestServer(store db.Store) *Server {
-	server := NewServer(store)
+	config := util.Config{
+		TokenSymmetricKey:  util.RandomText(32),
+		AccesTokenDuration: time.Minute,
+	}
+	server := NewServer(config, store)
 	return server
 }

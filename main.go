@@ -8,16 +8,21 @@ import (
 )
 
 func main() {
-	conn, err := util.Connect("inventory.db")
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal("cannot load config file: ", err)
+	}
+
+	conn, err := util.Connect(config.DBName)
 	if err != nil {
 		log.Fatal("cannot connect to database: ", err)
 	}
 
 	store := db.NewStore(conn)
 
-	server := api.NewServer(*store)
+	server := api.NewServer(config, *store)
 
-	err = server.Start("localhost:8080")
+	err = server.Start(config.ServerAddress)
 	if err != nil {
 		log.Fatal("fail starting server: ", err)
 	}

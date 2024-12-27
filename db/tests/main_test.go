@@ -11,7 +11,12 @@ import (
 var testQueries *db.Queries
 
 func TestMain(m *testing.M) {
-	conn, err := util.Connect("../../inventory.db")
+	config, err := util.LoadConfig("../..")
+	if err != nil {
+		log.Fatal("failed to load config file")
+	}
+	path := "../../" + config.DBName
+	conn, err := util.Connect(path)
 	if err != nil {
 		log.Fatal("failed to connect to database: ", err)
 	}

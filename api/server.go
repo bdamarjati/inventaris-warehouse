@@ -3,6 +3,7 @@ package api
 import (
 	"inventory/main/db"
 	"inventory/main/token"
+	"inventory/main/util"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,17 +14,19 @@ const secretKey string = "12345678901234567890123456789012"
 type Server struct {
 	router     *gin.Engine
 	store      db.Store
+	config     util.Config
 	tokenMaker token.Maker
 }
 
-func NewServer(store db.Store) *Server {
-	tokenMaker, err := token.NewJWTMaker(secretKey)
+func NewServer(config util.Config, store db.Store) *Server {
+	tokenMaker, err := token.NewJWTMaker(config.TokenSymmetricKey)
 	if err != nil {
 		return nil
 	}
 
 	server := &Server{
 		store:      store,
+		config:     config,
 		tokenMaker: tokenMaker,
 	}
 
