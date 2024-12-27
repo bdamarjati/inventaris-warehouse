@@ -2,14 +2,16 @@ package api
 
 import (
 	"inventory/main/db"
+	"inventory/main/token"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
-	router *gin.Engine
-	store  db.Store
+	router     *gin.Engine
+	store      db.Store
+	tokenMaker token.Maker
 }
 
 func NewServer(store db.Store) *Server {
@@ -27,6 +29,9 @@ func (server *Server) setupRouter() {
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"message": "ok"})
 	})
+
+	router.POST("/user", server.createUser)
+	router.POST("/login", server.loginUser)
 
 	router.POST("/category", server.createCategory)
 	router.GET("/category/:id", server.getCategory)

@@ -4,6 +4,7 @@ import (
 	"inventory/main/db"
 	"inventory/main/util"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -15,17 +16,12 @@ func createRandomUser(t *testing.T) (db.User, error) {
 		Role:     "User",
 	}
 
-	rowAffected, err := testQueries.CreateUser(arg)
+	user, err := testQueries.CreateUser(arg)
 	require.NoError(t, err)
-	require.NotZero(t, rowAffected)
+	require.NotEmpty(t, user)
+	require.WithinDuration(t, time.Now().Local(), user.CreatedAt, time.Second)
 
-	user1 := db.User{
-		Username: arg.Username,
-		Password: arg.Password,
-		Role:     arg.Role,
-	}
-
-	return user1, err
+	return user, err
 }
 
 func getUser(username string) (db.User, error) {

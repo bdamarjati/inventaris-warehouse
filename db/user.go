@@ -6,15 +6,14 @@ type CreateUserParams struct {
 	Role     string
 }
 
-func (q Queries) CreateUser(arg CreateUserParams) (int64, error) {
-	tx := q.db.Create(&User{
+func (q Queries) CreateUser(arg CreateUserParams) (User, error) {
+	user := User{
 		Username: arg.Username,
 		Password: arg.Password,
 		Role:     arg.Role,
-	})
-	err := tx.Error
-	rowAffected := tx.RowsAffected
-	return rowAffected, err
+	}
+	tx := q.db.Create(&user)
+	return user, tx.Error
 }
 
 func (q *Queries) GetUser(username string) (User, error) {
