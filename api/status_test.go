@@ -134,7 +134,7 @@ func TestUpdateStatus(t *testing.T) {
 	require.NoError(t, err)
 
 	url := "/status"
-	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
+	request, err := http.NewRequest(http.MethodPut, url, bytes.NewReader(data))
 	require.NoError(t, err)
 
 	server := newTestServer(*testStore)
@@ -143,7 +143,7 @@ func TestUpdateStatus(t *testing.T) {
 	server.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
-	status2, err := getStatus(arg.ID)
+	status2, err := getStatus(status1.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, status2)
 
