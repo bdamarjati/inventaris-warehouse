@@ -8,6 +8,13 @@ on:
 
   workflow_dispatch:
 
+env:
+  APP_CI: true
+  DB_NAME: ${{ secrets.DB_NAME }}
+  SERVER_ADDRESS: ${{ secrets.SERVER_ADDRESS }}
+  TOKEN_SYMMETRIC_KEY: ${{ secrets.TOKEN_SYMMETRIC_KEY }}
+  ACCESS_TOKEN_DURATION: ${{ secrets.ACCESS_TOKEN_DURATION }}
+
 jobs:
   test:
     name: Test
@@ -28,7 +35,7 @@ jobs:
           which migrate
 
       - name: Run migration
-        run: migrate -database "sqlite3://inventory.db" -path "db/migrations" -verbose up
+        run: migrate -database "sqlite3://${{ secrets.DB_NAME }}" -path "db/migrations" -verbose up
 
       - name: Run test module
         run: go test -v -cover ./...

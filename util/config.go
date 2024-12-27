@@ -1,6 +1,7 @@
 package util
 
 import (
+	"os"
 	"time"
 
 	"github.com/spf13/viper"
@@ -16,14 +17,21 @@ type Config struct {
 }
 
 func LoadConfig(path string) (config Config, err error) {
-	viper.SetConfigFile(path + "/.env")
-	viper.AutomaticEnv()
+	_, ci := os.LookupEnv("APP_CI")
+	if !ci {
+		viper.SetConfigFile(path + "/.env")
+		viper.AutomaticEnv()
 
-	err = viper.ReadInConfig()
-	if err != nil {
-		return
+		err = viper.ReadInConfig()
+		if err != nil {
+			return
+		}
+		err = viper.Unmarshal(&config)
+	} else {
+		config.DBName = os.Getenv("DB_NAME")
+		config.TokenSymmetricKey = os.Getenv("TOKEN_SYMMETRIC_KEY")
+		config.ServerAddress = os.Getenv("SERVER_ADDRESS")
 	}
-	err = viper.Unmarshal(&config)
 	return
 }
 
