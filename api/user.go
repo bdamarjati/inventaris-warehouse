@@ -4,12 +4,9 @@ import (
 	"inventory/main/db"
 	"inventory/main/util"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
-
-const accessTokenDuration time.Duration = 15 * time.Minute
 
 type createUserRequest struct {
 	Username string `json:"username"`
@@ -78,7 +75,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, err := server.tokenMaker.CreateToken(req.Username, accessTokenDuration)
+	accessToken, err := server.tokenMaker.CreateToken(req.Username, server.config.AccesTokenDuration)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

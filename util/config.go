@@ -31,6 +31,7 @@ func LoadConfig(path string) (config Config, err error) {
 		config.DBName = os.Getenv("DB_NAME")
 		config.TokenSymmetricKey = os.Getenv("TOKEN_SYMMETRIC_KEY")
 		config.ServerAddress = os.Getenv("SERVER_ADDRESS")
+		config.AccesTokenDuration, _ = time.ParseDuration(os.Getenv("ACCESS_TOKEN_DURATION"))
 	}
 	return
 }
