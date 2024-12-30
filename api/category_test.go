@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,21 +20,19 @@ func createRandomCategory(t *testing.T) db.RefCategories {
 		Name: util.RandomCategory(),
 	}
 
-	body := gin.H{
-		"name": arg.Name,
-	}
-
-	server := newTestServer(*testStore)
-	recorder := httptest.NewRecorder()
-
-	data, err := json.Marshal(body)
+	data, err := json.Marshal(arg)
 	require.NoError(t, err)
 
 	url := "/category"
 	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
 	require.NoError(t, err)
 
-	server.router.ServeHTTP(recorder, request)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
+	recorder := httptest.NewRecorder()
+
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
 	category, err := requireBodyMatchCategory(recorder.Body)
@@ -49,7 +46,6 @@ func createRandomCategory(t *testing.T) db.RefCategories {
 func getCategory(id int64) (db.RefCategories, error) {
 	category := db.RefCategories{}
 
-	server := newTestServer(*testStore)
 	recorder := httptest.NewRecorder()
 
 	url := fmt.Sprintf("/category/%d", id)
@@ -58,7 +54,12 @@ func getCategory(id int64) (db.RefCategories, error) {
 		return category, err
 	}
 
-	server.router.ServeHTTP(recorder, request)
+	err = addAuthorization(request)
+	if err != nil {
+		return category, err
+	}
+
+	testServer.router.ServeHTTP(recorder, request)
 	if recorder.Code == http.StatusInternalServerError {
 		return category, fmt.Errorf("internal server error: %v", err)
 	}
@@ -108,14 +109,16 @@ func TestListCategories(t *testing.T) {
 		Page: 1,
 	}
 
-	server := newTestServer(*testStore)
 	recorder := httptest.NewRecorder()
 
 	url := fmt.Sprintf("/categories/%d/%d", arg.Size, arg.Page)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	require.NoError(t, err)
 
-	server.router.ServeHTTP(recorder, request)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, recorder.Code, http.StatusOK)
 
 	result, err := io.ReadAll(recorder.Body)
@@ -137,22 +140,19 @@ func TestUpdateCategory(t *testing.T) {
 		Name: util.RandomCategory(),
 	}
 
-	body := gin.H{
-		"id":   arg.ID,
-		"name": arg.Name,
-	}
-
-	data, err := json.Marshal(body)
+	data, err := json.Marshal(arg)
 	require.NoError(t, err)
 
 	url := "/category"
 	request, err := http.NewRequest(http.MethodPut, url, bytes.NewReader(data))
 	require.NoError(t, err)
 
-	server := newTestServer(*testStore)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
 	recorder := httptest.NewRecorder()
 
-	server.router.ServeHTTP(recorder, request)
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
 	category2, err := getCategory(arg.ID)
@@ -168,14 +168,16 @@ func TestDeleteCategory(t *testing.T) {
 	category1 := createRandomCategory(t)
 	require.NotEmpty(t, category1)
 
-	server := newTestServer(*testStore)
 	recorder := httptest.NewRecorder()
 
 	url := fmt.Sprintf("/category/%d", category1.ID)
 	request, err := http.NewRequest(http.MethodDelete, url, nil)
 	require.NoError(t, err)
 
-	server.router.ServeHTTP(recorder, request)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
 	category2, err := getCategory(category1.ID)

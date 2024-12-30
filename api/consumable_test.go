@@ -36,10 +36,12 @@ func createRandomConsumable(t *testing.T) db.Consumables {
 	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
 	require.NoError(t, err)
 
-	server := newTestServer(*testStore)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
 	recorder := httptest.NewRecorder()
 
-	server.router.ServeHTTP(recorder, request)
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
 	consumable, err := requireBodyMatchConsumable(recorder.Body)
@@ -57,7 +59,6 @@ func createRandomConsumable(t *testing.T) db.Consumables {
 func getConsumable(id int64) (db.Consumables, error) {
 	consumable := db.Consumables{}
 
-	server := newTestServer(*testStore)
 	recorder := httptest.NewRecorder()
 
 	url := fmt.Sprintf("/consumable/%d", id)
@@ -66,9 +67,14 @@ func getConsumable(id int64) (db.Consumables, error) {
 		return consumable, err
 	}
 
-	server.router.ServeHTTP(recorder, request)
+	err = addAuthorization(request)
+	if err != nil {
+		return consumable, err
+	}
+
+	testServer.router.ServeHTTP(recorder, request)
 	if recorder.Code == http.StatusInternalServerError {
-		return consumable, fmt.Errorf("internal server error: %v", err)
+		return consumable, fmt.Errorf("internal testServer error: %v", err)
 	}
 
 	consumable, err = requireBodyMatchConsumable(recorder.Body)
@@ -119,14 +125,16 @@ func TestListConsumables(t *testing.T) {
 		Page: 1,
 	}
 
-	server := newTestServer(*testStore)
 	recorder := httptest.NewRecorder()
 
 	url := fmt.Sprintf("/consumables/%d/%d", arg.Size, arg.Page)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	require.NoError(t, err)
 
-	server.router.ServeHTTP(recorder, request)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, recorder.Code, http.StatusOK)
 
 	result, err := io.ReadAll(recorder.Body)
@@ -158,10 +166,12 @@ func TestUpdateConsumable(t *testing.T) {
 	request, err := http.NewRequest(http.MethodPut, url, bytes.NewReader(data))
 	require.NoError(t, err)
 
-	server := newTestServer(*testStore)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
 	recorder := httptest.NewRecorder()
 
-	server.router.ServeHTTP(recorder, request)
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
 	consumable2, err := getConsumable(arg.ID)
@@ -181,14 +191,16 @@ func TestDeleteConsumable(t *testing.T) {
 	consumable1 := createRandomConsumable(t)
 	require.NotEmpty(t, consumable1)
 
-	server := newTestServer(*testStore)
 	recorder := httptest.NewRecorder()
 
 	url := fmt.Sprintf("/consumable/%d", consumable1.ID)
 	request, err := http.NewRequest(http.MethodDelete, url, nil)
 	require.NoError(t, err)
 
-	server.router.ServeHTTP(recorder, request)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
 	consumable2, err := getConsumable(consumable1.ID)

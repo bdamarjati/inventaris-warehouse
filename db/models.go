@@ -3,10 +3,10 @@ package db
 import "time"
 
 type User struct {
-	Username  string
-	Password  string
-	Role      string
-	CreatedAt time.Time
+	Username  string    `json:"username"`
+	Password  string    `json:"password"`
+	Role      string    `json:"role"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type RefCategories struct {

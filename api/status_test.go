@@ -27,10 +27,12 @@ func createRandomStatus(t *testing.T) db.RefStatus {
 	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
 	require.NoError(t, err)
 
-	server := newTestServer(*testStore)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
 	recorder := httptest.NewRecorder()
 
-	server.router.ServeHTTP(recorder, request)
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
 	status, err := requireBodyMatchStatus(recorder.Body)
@@ -50,12 +52,16 @@ func getStatus(id int64) (db.RefStatus, error) {
 		return status, err
 	}
 
-	server := newTestServer(*testStore)
+	err = addAuthorization(request)
+	if err != nil {
+		return status, err
+	}
+
 	recorder := httptest.NewRecorder()
 
-	server.router.ServeHTTP(recorder, request)
+	testServer.router.ServeHTTP(recorder, request)
 	if recorder.Code == http.StatusInternalServerError {
-		return status, fmt.Errorf("internal server error: %v", err)
+		return status, fmt.Errorf("internal testServer error: %v", err)
 	}
 
 	status, err = requireBodyMatchStatus(recorder.Body)
@@ -105,10 +111,12 @@ func TestListStatus(t *testing.T) {
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	require.NoError(t, err)
 
-	server := newTestServer(*testStore)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
 	recorder := httptest.NewRecorder()
 
-	server.router.ServeHTTP(recorder, request)
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
 	results, err := io.ReadAll(recorder.Body)
@@ -137,10 +145,12 @@ func TestUpdateStatus(t *testing.T) {
 	request, err := http.NewRequest(http.MethodPut, url, bytes.NewReader(data))
 	require.NoError(t, err)
 
-	server := newTestServer(*testStore)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
 	recorder := httptest.NewRecorder()
 
-	server.router.ServeHTTP(recorder, request)
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
 	status2, err := getStatus(status1.ID)
@@ -160,10 +170,12 @@ func TestDeleteStatus(t *testing.T) {
 	request, err := http.NewRequest(http.MethodDelete, url, nil)
 	require.NoError(t, err)
 
-	server := newTestServer(*testStore)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
 	recorder := httptest.NewRecorder()
 
-	server.router.ServeHTTP(recorder, request)
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
 	status2, err := getStatus(status1.ID)

@@ -9,8 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const secretKey string = "12345678901234567890123456789012"
-
 type Server struct {
 	router     *gin.Engine
 	store      db.Store
@@ -49,29 +47,29 @@ func (server *Server) setupRouter() {
 		ctx.JSON(http.StatusOK, gin.H{"message": "authorized"})
 	})
 
-	router.POST("/category", server.createCategory)
-	router.GET("/category/:id", server.getCategory)
-	router.GET("/categories/:size/:page", server.listCategories)
-	router.PUT("/category", server.updateCategory)
-	router.DELETE("/category/:id", server.deleteCategory)
+	authRoute.POST("/category", server.createCategory)
+	authRoute.GET("/category/:id", server.getCategory)
+	authRoute.GET("/categories/:size/:page", server.listCategories)
+	authRoute.PUT("/category", server.updateCategory)
+	authRoute.DELETE("/category/:id", server.deleteCategory)
 
-	router.POST("/status", server.createStatus)
-	router.GET("/status/:id", server.getStatus)
-	router.GET("/statuses/:size/:page", server.listStatus)
-	router.PUT("/status", server.updateStatus)
-	router.DELETE("/status/:id", server.deleteStatus)
+	authRoute.POST("/status", server.createStatus)
+	authRoute.GET("/status/:id", server.getStatus)
+	authRoute.GET("/statuses/:size/:page", server.listStatus)
+	authRoute.PUT("/status", server.updateStatus)
+	authRoute.DELETE("/status/:id", server.deleteStatus)
 
-	router.POST("/inventory", server.createInventory)
-	router.GET("/inventory/:id", server.getInventory)
-	router.GET("/inventories/:size/:page", server.listInventories)
-	router.PUT("/inventory", server.updateInventory)
-	router.DELETE("/inventory/:id", server.deleteInventory)
+	authRoute.POST("/inventory", server.createInventory)
+	authRoute.GET("/inventory/:id", server.getInventory)
+	authRoute.GET("/inventories/:size/:page", server.listInventories)
+	authRoute.PUT("/inventory", server.updateInventory)
+	authRoute.DELETE("/inventory/:id", server.deleteInventory)
 
-	router.POST("/consumable", server.createConsumable)
-	router.GET("/consumable/:id", server.getConsumable)
-	router.GET("/consumables/:size/:page", server.listConsumables)
-	router.PUT("/consumable", server.updateConsumable)
-	router.DELETE("/consumable/:id", server.deleteConsumable)
+	authRoute.POST("/consumable", server.createConsumable)
+	authRoute.GET("/consumable/:id", server.getConsumable)
+	authRoute.GET("/consumables/:size/:page", server.listConsumables)
+	authRoute.PUT("/consumable", server.updateConsumable)
+	authRoute.DELETE("/consumable/:id", server.deleteConsumable)
 
 	server.router = router
 }

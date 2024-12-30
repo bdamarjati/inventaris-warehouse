@@ -4,6 +4,7 @@ import (
 	"inventory/main/db"
 	"inventory/main/util"
 	"log"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -11,7 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var testStore *db.Store
+var testServer *Server
+var testUser *loginUserResponse
 
 func TestMain(m *testing.M) {
 	config, err := util.LoadConfig("..")
@@ -24,7 +26,21 @@ func TestMain(m *testing.M) {
 		log.Fatal("failed to connect to database: ", err)
 	}
 
-	testStore = db.NewStore(conn)
+	testStore := db.NewStore(conn)
+	testServer = newTestServer(*testStore)
+
+	user, err := createRandomUser()
+	if err != nil {
+		log.Fatal("failed to create test user: ", err)
+	}
+	loggedUser, err := getAccessToken(loginUserRequest{
+		Username: user.Username,
+		Password: user.Password,
+	})
+	if err != nil {
+		log.Fatal("failed to get test user access token: ", err)
+	}
+	testUser = &loggedUser
 
 	gin.SetMode(gin.TestMode)
 
@@ -38,4 +54,10 @@ func newTestServer(store db.Store) *Server {
 	}
 	server := NewServer(config, store)
 	return server
+}
+
+func addAuthorization(req *http.Request) error {
+	auth := "Bearer " + testUser.AccessToken
+	req.Header.Add("Authorization", auth)
+	return nil
 }

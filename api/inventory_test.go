@@ -37,10 +37,12 @@ func createRandomInventory(t *testing.T) db.Inventories {
 	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
 	require.NoError(t, err)
 
-	server := newTestServer(*testStore)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
 	recorder := httptest.NewRecorder()
 
-	server.router.ServeHTTP(recorder, request)
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
 	inventory, err := requireBodyMatchInventory(recorder.Body)
@@ -59,7 +61,6 @@ func createRandomInventory(t *testing.T) db.Inventories {
 func getInventory(id int64) (db.Inventories, error) {
 	inventory := db.Inventories{}
 
-	server := newTestServer(*testStore)
 	recorder := httptest.NewRecorder()
 
 	url := fmt.Sprintf("/inventory/%d", id)
@@ -68,9 +69,14 @@ func getInventory(id int64) (db.Inventories, error) {
 		return inventory, err
 	}
 
-	server.router.ServeHTTP(recorder, request)
+	err = addAuthorization(request)
+	if err != nil {
+		return inventory, err
+	}
+
+	testServer.router.ServeHTTP(recorder, request)
 	if recorder.Code == http.StatusInternalServerError {
-		return inventory, fmt.Errorf("internal server error: %v", err)
+		return inventory, fmt.Errorf("internal testServer error: %v", err)
 	}
 
 	inventory, err = requireBodyMatchInventory(recorder.Body)
@@ -122,14 +128,16 @@ func TestListInventories(t *testing.T) {
 		Page: 1,
 	}
 
-	server := newTestServer(*testStore)
 	recorder := httptest.NewRecorder()
 
 	url := fmt.Sprintf("/inventories/%d/%d", arg.Size, arg.Page)
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	require.NoError(t, err)
 
-	server.router.ServeHTTP(recorder, request)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, recorder.Code, http.StatusOK)
 
 	result, err := io.ReadAll(recorder.Body)
@@ -162,10 +170,12 @@ func TestUpdateInventory(t *testing.T) {
 	request, err := http.NewRequest(http.MethodPut, url, bytes.NewReader(data))
 	require.NoError(t, err)
 
-	server := newTestServer(*testStore)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
 	recorder := httptest.NewRecorder()
 
-	server.router.ServeHTTP(recorder, request)
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
 	inventory2, err := getInventory(arg.ID)
@@ -186,14 +196,16 @@ func TestDeleteInventory(t *testing.T) {
 	inventory1 := createRandomInventory(t)
 	require.NotEmpty(t, inventory1)
 
-	server := newTestServer(*testStore)
 	recorder := httptest.NewRecorder()
 
 	url := fmt.Sprintf("/inventory/%d", inventory1.ID)
 	request, err := http.NewRequest(http.MethodDelete, url, nil)
 	require.NoError(t, err)
 
-	server.router.ServeHTTP(recorder, request)
+	err = addAuthorization(request)
+	require.NoError(t, err)
+
+	testServer.router.ServeHTTP(recorder, request)
 	require.Equal(t, http.StatusOK, recorder.Code)
 
 	inventory2, err := getInventory(inventory1.ID)
